@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Save and manage your AI prompts efficiently"
+    />
+    <title id="pageTitle"></title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body>
+    <div class="container">
+      <header role="banner">
+        <nav class="header-controls" aria-label="Settings">
+          <label
+            for="languageSelector"
+            class="visually-hidden"
+            data-i18n="selectLanguage"
+            >Select language</label
+          >
+          <select
+            id="languageSelector"
+            class="language-selector"
+            aria-label="Select language"
+          >
+            <option value="en">🇬🇧 English</option>
+            <option value="ka">🇬🇪 ქართული</option>
+            <option value="ru">🇷🇺 Русский</option>
+          </select>
+          <button
+            id="themeToggle"
+            class="theme-toggle"
+            aria-label="Toggle theme"
+            aria-pressed="false"
+          >
+            <span class="theme-icon" aria-hidden="true">🌙</span>
+          </button>
+        </nav>
+        <h1 data-i18n="title"></h1>
+        <p class="subtitle" data-i18n="subtitle"></p>
+      </header>
+
+      <main class="main-content" role="main">
+        <section class="add-prompt-section" aria-labelledby="addPromptHeading">
+          <h2 id="addPromptHeading" data-i18n="addNewPrompt"></h2>
+          <form id="promptForm" aria-label="Create new prompt">
+            <div class="form-group">
+              <label for="promptTitle" data-i18n="titleLabel"></label>
+              <input
+                type="text"
+                id="promptTitle"
+                name="title"
+                data-i18n-placeholder="titlePlaceholder"
+                placeholder=""
+                aria-required="true"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="promptContent" data-i18n="contentLabel"></label>
+              <textarea
+                id="promptContent"
+                name="content"
+                rows="6"
+                data-i18n-placeholder="contentPlaceholder"
+                placeholder=""
+                aria-required="true"
+                required
+              ></textarea>
+            </div>
+            <button
+              type="submit"
+              class="btn-primary"
+              data-i18n="saveButton"
+            ></button>
+          </form>
+        </section>
+
+        <section class="prompts-section" aria-labelledby="savedPromptsHeading">
+          <div class="section-header">
+            <h2 id="savedPromptsHeading" data-i18n="savedPrompts"></h2>
+            <div class="section-header-actions">
+              <span
+                id="promptCount"
+                class="count-badge"
+                aria-live="polite"
+                aria-atomic="true"
+                >0</span
+              >
+              <button
+                id="exportButton"
+                class="btn-export"
+                data-i18n="exportButton"
+                data-i18n-aria="exportAriaLabel"
+              ></button>
+            </div>
+          </div>
+          <div class="search-container" role="search">
+            <label
+              for="searchInput"
+              class="visually-hidden"
+              data-i18n="searchLabel"
+              >Search prompts</label
+            >
+            <input
+              type="search"
+              id="searchInput"
+              class="search-input"
+              data-i18n-placeholder="searchPlaceholder"
+              placeholder=""
+              aria-label="Search prompts by title or content"
+            />
+            <span class="search-icon" aria-hidden="true">🔍</span>
+          </div>
+          <div
+            id="promptsList"
+            class="prompts-grid"
+            role="list"
+            aria-label="Prompt cards"
+          >
+            <!-- Prompts will be dynamically inserted here -->
+          </div>
+          <div
+            id="emptyState"
+            class="empty-state"
+            role="status"
+            aria-live="polite"
+          >
+            <p data-i18n="emptyState"></p>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+  </body>
+</html>

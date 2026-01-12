@@ -1,0 +1,32 @@
+{
+  "name": "prompt-library",
+  "version": "1.0.0",
+  "description": "A modern web application for managing and organizing AI prompts with multi-language support",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext .js",
+    "format": "prettier --write \"**/*.{js,html,css,md}\""
+  },
+  "keywords": [
+    "prompt",
+    "library",
+    "ai",
+    "prompts",
+    "management",
+    "i18n",
+    "accessibility"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "vite": "^6.0.0",
+    "eslint": "^9.15.0",
+    "prettier": "^3.4.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
