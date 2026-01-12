@@ -272,7 +272,9 @@ export class PromptLibrary {
 
     // Filter prompts based on search query
     const filteredPrompts = this.prompts.filter((prompt) => {
-      if (!this.searchQuery) return true;
+      if (!this.searchQuery) {
+        return true;
+      }
 
       const titleMatch = prompt.title.toLowerCase().includes(this.searchQuery);
       const contentMatch = prompt.content
@@ -354,7 +356,7 @@ export class PromptLibrary {
       .replace(/\r/g, "\\r");
   }
 
-  showToast(message, type = "success") {
+  showToast(message, _type = "success") {
     // Remove any existing toast
     const existingToast = document.querySelector(".toast");
     if (existingToast) {
