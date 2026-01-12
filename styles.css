@@ -99,12 +99,14 @@ header h1 {
   border: 2px solid var(--border-color);
   border-radius: 8px;
   padding: 0.5rem 0.75rem;
-  font-size: 0.9rem;
-  font-weight: 500;
+  font-size: 0.875rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: var(--shadow-sm);
   outline: none;
+  min-width: 65px;
+  text-align: center;
 }
 
 .language-selector:hover {
@@ -335,8 +337,8 @@ header h1 {
 
 .prompts-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1.25rem;
 }
 
 @media (max-width: 768px) {
@@ -346,16 +348,20 @@ header h1 {
 }
 
 .prompt-card {
-  background: var(--background);
-  padding: 1.5rem;
-  border-radius: 8px;
+  background: var(--card-background);
+  padding: 0;
+  border-radius: 16px;
   border: 1px solid var(--border-color);
   transition:
-    transform 0.2s,
-    box-shadow 0.2s,
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
     background-color 0.3s ease,
-    border-color 0.3s ease;
+    border-color 0.2s ease;
   animation: fadeIn 0.3s ease-in;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
 }
 
 @keyframes fadeIn {
@@ -371,48 +377,61 @@ header h1 {
 
 .prompt-card:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.1);
   border-color: var(--primary-color);
 }
 
 .prompt-card-header {
   display: flex;
   justify-content: space-between;
-  align-items: start;
-  margin-bottom: 1rem;
+  align-items: flex-start;
+  padding: 1.5rem 1.5rem 0 1.5rem;
+  margin-bottom: 0;
   gap: 1rem;
+  flex-shrink: 0;
 }
 
 .prompt-card h3 {
-  font-size: 1.25rem;
+  font-size: 1.0625rem;
+  font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 0.5rem;
+  margin: 0 0 0.5rem 0;
   word-break: break-word;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
 }
 
 .prompt-date {
   font-size: 0.75rem;
   color: var(--text-secondary);
+  font-weight: 400;
+  opacity: 0.8;
 }
 
 .rating-container {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 
 .rating-stars {
   display: flex;
   gap: 0.25rem;
   align-items: center;
+  background: var(--background);
+  padding: 0.375rem 0.625rem;
+  border-radius: 10px;
+  border: none;
 }
 
 .star {
   background: none;
   border: none;
-  font-size: 1.5rem;
+  font-size: 1.125rem;
   cursor: pointer;
   padding: 0;
   line-height: 1;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
   color: var(--text-secondary);
 }
 
@@ -426,7 +445,7 @@ header h1 {
 
 .star.star-empty {
   color: var(--text-secondary);
-  opacity: 0.4;
+  opacity: 0.25;
 }
 
 .star.star-filled {
@@ -437,43 +456,50 @@ header h1 {
 .star:focus {
   outline: 2px solid var(--primary-color);
   outline-offset: 2px;
-  border-radius: 2px;
+  border-radius: 4px;
 }
 
 /* Hover effect for star rating */
 .rating-stars:hover .star.star-empty {
-  opacity: 0.6;
-}
-
-.rating-stars .star:hover ~ .star.star-empty {
   opacity: 0.4;
 }
 
+.rating-stars .star:hover ~ .star.star-empty {
+  opacity: 0.25;
+}
+
 .prompt-content {
-  color: var(--text-secondary);
-  line-height: 1.6;
-  margin-bottom: 1rem;
+  color: var(--text-primary);
+  line-height: 1.65;
+  margin-bottom: auto;
+  padding: 1rem 1.5rem 1.5rem 1.5rem;
   word-wrap: break-word;
   white-space: pre-wrap;
+  font-size: 0.9375rem;
+  flex-grow: 1;
+  opacity: 0.85;
 }
 
 .prompt-actions {
   display: flex;
   gap: 0.5rem;
-  padding-top: 1rem;
+  padding: 1rem 1.5rem 1.5rem 1.5rem;
   border-top: 1px solid var(--border-color);
+  margin-top: auto;
+  flex-shrink: 0;
+  background: var(--background);
 }
 
 .btn-copy,
 .btn-delete {
   flex: 1;
-  padding: 0.5rem 0.75rem;
+  padding: 0.625rem 1rem;
   border: none;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  font-weight: 600;
+  border-radius: 10px;
+  font-size: 0.8125rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -481,24 +507,26 @@ header h1 {
 }
 
 .btn-copy {
-  background-color: var(--background);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
+  background-color: rgba(99, 102, 241, 0.08);
+  color: var(--primary-color);
+  border: none;
 }
 
 .btn-copy:hover {
   background-color: var(--primary-color);
   color: white;
-  border-color: var(--primary-color);
+  transform: translateY(-1px);
 }
 
 .btn-delete {
-  background-color: var(--danger-color);
-  color: white;
+  background-color: rgba(251, 113, 133, 0.1);
+  color: var(--danger-color);
 }
 
 .btn-delete:hover {
-  background-color: var(--danger-hover);
+  background-color: var(--danger-color);
+  color: white;
+  transform: translateY(-1px);
 }
 
 .empty-state {

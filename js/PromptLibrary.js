@@ -208,7 +208,34 @@ export class PromptLibrary {
     if (prompt) {
       prompt.rating = rating;
       this.savePrompts();
-      this.renderPrompts();
+      
+      // Update only the specific rating UI without re-rendering everything
+      const card = document.querySelector(`.prompt-card[data-id="${promptId}"]`);
+      if (card) {
+        const ratingContainer = card.querySelector('.rating-container');
+        if (ratingContainer) {
+          ratingContainer.innerHTML = `
+            <div class="rating-stars">
+              ${Array.from({ length: 5 }, (_, i) => {
+                const starNum = i + 1;
+                const filled = starNum <= rating;
+                const starClass = filled ? 'star-filled' : 'star-empty';
+                const ariaLabel = this.t(TRANSLATION_KEYS.RATE_STARS).replace('{0}', starNum.toString());
+                return `
+                  <button
+                    class="star ${starClass}"
+                    data-rating="${starNum}"
+                    onclick="promptLibrary.setRating(${promptId}, ${starNum})"
+                    aria-label="${ariaLabel}"
+                    type="button"
+                  >${filled ? '★' : '☆'}</button>
+                `;
+              }).join('')}
+            </div>
+          `;
+        }
+      }
+      
       this.showToast(this.t(TRANSLATION_KEYS.RATING_UPDATED), "success");
     }
   }
