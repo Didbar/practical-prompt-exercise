@@ -380,6 +380,7 @@ header h1 {
   justify-content: space-between;
   align-items: start;
   margin-bottom: 1rem;
+  gap: 1rem;
 }
 
 .prompt-card h3 {
@@ -392,6 +393,60 @@ header h1 {
 .prompt-date {
   font-size: 0.75rem;
   color: var(--text-secondary);
+}
+
+.rating-container {
+  flex-shrink: 0;
+}
+
+.rating-stars {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.star {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: all 0.2s ease;
+  color: var(--text-secondary);
+}
+
+.star:hover {
+  transform: scale(1.2);
+}
+
+.star:active {
+  transform: scale(1.1);
+}
+
+.star.star-empty {
+  color: var(--text-secondary);
+  opacity: 0.4;
+}
+
+.star.star-filled {
+  color: #fbbf24;
+  opacity: 1;
+}
+
+.star:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Hover effect for star rating */
+.rating-stars:hover .star.star-empty {
+  opacity: 0.6;
+}
+
+.rating-stars .star:hover ~ .star.star-empty {
+  opacity: 0.4;
 }
 
 .prompt-content {

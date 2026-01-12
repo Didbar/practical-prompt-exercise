@@ -37,6 +37,9 @@ export const translations = {
     [TRANSLATION_KEYS.HOURS_AGO]: "h ago",
     [TRANSLATION_KEYS.YESTERDAY]: "Yesterday",
     [TRANSLATION_KEYS.DAYS_AGO]: "d ago",
+    [TRANSLATION_KEYS.RATING_UPDATED]: "Rating updated!",
+    [TRANSLATION_KEYS.RATE_PROMPT]: "Rate this prompt",
+    [TRANSLATION_KEYS.RATE_STARS]: "Rate {0} out of 5 stars",
   },
   ka: {
     [TRANSLATION_KEYS.PAGE_TITLE]: "პრომპტების ბიბლიოთეკა",
@@ -75,6 +78,9 @@ export const translations = {
     [TRANSLATION_KEYS.HOURS_AGO]: "სთ წინ",
     [TRANSLATION_KEYS.YESTERDAY]: "გუშინ",
     [TRANSLATION_KEYS.DAYS_AGO]: "დღის წინ",
+    [TRANSLATION_KEYS.RATING_UPDATED]: "შეფასება განახლდა!",
+    [TRANSLATION_KEYS.RATE_PROMPT]: "შეაფასეთ ეს პრომპტი",
+    [TRANSLATION_KEYS.RATE_STARS]: "შეაფასეთ {0} ვარსკვლავი 5-დან",
   },
   ru: {
     [TRANSLATION_KEYS.PAGE_TITLE]: "Библиотека промптов",
@@ -113,5 +119,8 @@ export const translations = {
     [TRANSLATION_KEYS.HOURS_AGO]: "ч назад",
     [TRANSLATION_KEYS.YESTERDAY]: "Вчера",
     [TRANSLATION_KEYS.DAYS_AGO]: "дн назад",
+    [TRANSLATION_KEYS.RATING_UPDATED]: "Рейтинг обновлен!",
+    [TRANSLATION_KEYS.RATE_PROMPT]: "Оценить этот промпт",
+    [TRANSLATION_KEYS.RATE_STARS]: "Оценить {0} из 5 звезд",
   },
 };

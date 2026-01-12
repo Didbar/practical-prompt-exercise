@@ -51,4 +51,7 @@ export const TRANSLATION_KEYS = {
   HOURS_AGO: "hoursAgo",
   YESTERDAY: "yesterday",
   DAYS_AGO: "daysAgo",
+  RATING_UPDATED: "ratingUpdated",
+  RATE_PROMPT: "ratePrompt",
+  RATE_STARS: "rateStars",
 };

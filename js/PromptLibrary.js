@@ -164,6 +164,7 @@ export class PromptLibrary {
       title: title,
       content: content,
       createdAt: new Date().toISOString(),
+      rating: 0,
     };
 
     this.prompts.unshift(prompt);
@@ -200,6 +201,16 @@ export class PromptLibrary {
         console.error("Failed to copy:", err);
         this.showToast(this.t(TRANSLATION_KEYS.COPY_FAILED), "error");
       });
+  }
+
+  setRating(promptId, rating) {
+    const prompt = this.prompts.find((p) => p.id === promptId);
+    if (prompt) {
+      prompt.rating = rating;
+      this.savePrompts();
+      this.renderPrompts();
+      this.showToast(this.t(TRANSLATION_KEYS.RATING_UPDATED), "success");
+    }
   }
 
   exportPrompts() {
@@ -264,6 +275,29 @@ export class PromptLibrary {
     }
   }
 
+  renderStars(promptId, currentRating) {
+    let starsHtml = '<div class="rating-stars">';
+    for (let i = 1; i <= 5; i++) {
+      const filled = i <= currentRating;
+      const starClass = filled ? "star-filled" : "star-empty";
+      const ariaLabel = this.t(TRANSLATION_KEYS.RATE_STARS).replace(
+        "{0}",
+        i.toString()
+      );
+      starsHtml += `
+        <button
+          class="star ${starClass}"
+          data-rating="${i}"
+          onclick="promptLibrary.setRating(${promptId}, ${i})"
+          aria-label="${ariaLabel}"
+          type="button"
+        >${filled ? "★" : "☆"}</button>
+      `;
+    }
+    starsHtml += "</div>";
+    return starsHtml;
+  }
+
   renderPrompts() {
     const promptsList = document.getElementById("promptsList");
     const emptyState = document.getElementById("emptyState");
@@ -318,6 +352,11 @@ export class PromptLibrary {
                         <div class="prompt-date">${this.formatDate(
                           prompt.createdAt
                         )}</div>
+                    </div>
+                    <div class="rating-container" aria-label="${this.t(
+                      TRANSLATION_KEYS.RATE_PROMPT
+                    )}">
+                        ${this.renderStars(prompt.id, prompt.rating || 0)}
                     </div>
                 </div>
                 <div class="prompt-content">${this.escapeHtml(
