@@ -42,6 +42,11 @@
             <textarea id="promptContent" name="content" rows="6" data-i18n-placeholder="contentPlaceholder"
               placeholder="Enter your prompt text here..." aria-required="true" required></textarea>
           </div>
+          <div class="form-group">
+            <label for="promptModel" data-i18n="modelLabel">AI Model (Optional)</label>
+            <input type="text" id="promptModel" name="model" data-i18n-placeholder="modelPlaceholder"
+              placeholder="e.g., GPT-4, Claude 3.5 Sonnet" maxlength="100" />
+          </div>
           <button type="submit" class="btn-primary" data-i18n="saveButton">Save Prompt</button>
         </form>
       </section>

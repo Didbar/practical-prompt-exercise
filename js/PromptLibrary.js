@@ -7,6 +7,7 @@ export class PromptLibrary {
     this.currentLang = "en";
     this.searchQuery = "";
     this.autoSaveTimers = {};
+    this.editingPromptId = null;
     this.init();
   }
 
@@ -148,38 +149,23 @@ export class PromptLibrary {
   }
 
   getDefaultPrompts() {
-    return [
-      {
-        id: Date.now() + 1,
-        title: "Code Review Assistant",
-        content: `Review the following code for:
+    const prompt1Content = `Review the following code for:
 - Bugs and errors
 - Performance issues  
 - Security vulnerabilities
 - Code style and best practices
 
-Provide specific, actionable feedback with examples.`,
-        createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
-        rating: 5,
-        note: "Works best with small to medium code snippets.",
-      },
-      {
-        id: Date.now() + 2,
-        title: "Professional Email Writer",
-        content: `Write a professional email with:
+Provide specific, actionable feedback with examples.`;
+
+    const prompt2Content = `Write a professional email with:
 - Purpose: [your purpose]
 - Tone: [formal/friendly]
 - Key points: [main points]
 - Call to action: [desired action]
 
-Keep it concise, clear, and professional.`,
-        createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-        rating: 4,
-      },
-      {
-        id: Date.now() + 3,
-        title: "Bug Report Generator",
-        content: `Create a bug report with:
+Keep it concise, clear, and professional.`;
+
+    const prompt3Content = `Create a bug report with:
 
 Summary:
 [Brief description]
@@ -192,29 +178,17 @@ Expected: [What should happen]
 Actual: [What happens]
 
 Environment: [Browser/OS/Device]
-Priority: [Critical/High/Medium/Low]`,
-        createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        rating: 5,
-        note: "Include console errors and screenshots.",
-      },
-      {
-        id: Date.now() + 4,
-        title: "Social Media Post Generator",
-        content: `Create an engaging post for *[platform]* about:
+Priority: [Critical/High/Medium/Low]`;
+
+    const prompt4Content = `Create an engaging post for *[platform]* about:
 - Topic: [your topic]
 - Audience: [target audience]
 - Tone: [professional/casual/humorous]
 - Include: [hashtags/emojis/CTA]
 
-Start with a hook and encourage engagement.`,
-        createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-        rating: 4,
-        note: "Adapt tone by platform.",
-      },
-      {
-        id: Date.now() + 5,
-        title: "Meeting Notes Summarizer",
-        content: `Summarize meeting notes with:
+Start with a hook and encourage engagement.`;
+
+    const prompt5Content = `Summarize meeting notes with:
 
 Overview:
 - Date & Attendees: [list]
@@ -227,10 +201,91 @@ Key Decisions:
 Action Items:
 - [Task] - Assigned: [Person] - Due: [Date]
 
-Focus on *decisions* and *next steps*.`,
-        createdAt: new Date().toISOString(),
+Focus on *decisions* and *next steps*.`;
+
+    const createdAt1 = new Date(
+      Date.now() - 4 * 24 * 60 * 60 * 1000
+    ).toISOString();
+    const createdAt2 = new Date(
+      Date.now() - 3 * 24 * 60 * 60 * 1000
+    ).toISOString();
+    const createdAt3 = new Date(
+      Date.now() - 2 * 24 * 60 * 60 * 1000
+    ).toISOString();
+    const createdAt4 = new Date(
+      Date.now() - 1 * 24 * 60 * 60 * 1000
+    ).toISOString();
+    const createdAt5 = new Date().toISOString();
+
+    return [
+      {
+        id: Date.now() + 1,
+        title: "Code Review Assistant",
+        content: prompt1Content,
+        createdAt: createdAt1,
+        rating: 5,
+        note: "Works best with small to medium code snippets.",
+        metadata: {
+          model: "GPT-4",
+          createdAt: createdAt1,
+          updatedAt: createdAt1,
+          tokenEstimate: this.estimateTokens(prompt1Content, true),
+        },
+      },
+      {
+        id: Date.now() + 2,
+        title: "Professional Email Writer",
+        content: prompt2Content,
+        createdAt: createdAt2,
+        rating: 4,
+        metadata: {
+          model: "Claude 3.5 Sonnet",
+          createdAt: createdAt2,
+          updatedAt: createdAt2,
+          tokenEstimate: this.estimateTokens(prompt2Content, false),
+        },
+      },
+      {
+        id: Date.now() + 3,
+        title: "Bug Report Generator",
+        content: prompt3Content,
+        createdAt: createdAt3,
+        rating: 5,
+        note: "Include console errors and screenshots.",
+        metadata: {
+          model: "GPT-4 Turbo",
+          createdAt: createdAt3,
+          updatedAt: createdAt3,
+          tokenEstimate: this.estimateTokens(prompt3Content, false),
+        },
+      },
+      {
+        id: Date.now() + 4,
+        title: "Social Media Post Generator",
+        content: prompt4Content,
+        createdAt: createdAt4,
+        rating: 4,
+        note: "Adapt tone by platform.",
+        metadata: {
+          model: "Claude 3 Opus",
+          createdAt: createdAt4,
+          updatedAt: createdAt4,
+          tokenEstimate: this.estimateTokens(prompt4Content, false),
+        },
+      },
+      {
+        id: Date.now() + 5,
+        title: "Meeting Notes Summarizer",
+        content: prompt5Content,
+        createdAt: createdAt5,
         rating: 5,
         note: "Great for standups and team meetings.",
+        metadata: {
+          model: "GPT-4o",
+          createdAt: createdAt5,
+          updatedAt: createdAt5,
+          tokenEstimate: this.estimateTokens(prompt5Content, false),
+        },
       },
     ];
   }
@@ -243,33 +298,162 @@ Focus on *decisions* and *next steps*.`,
   addPrompt() {
     const titleInput = document.getElementById("promptTitle");
     const contentInput = document.getElementById("promptContent");
+    const modelInput = document.getElementById("promptModel");
 
     const title = titleInput.value.trim();
     const content = contentInput.value.trim();
+    const model = modelInput.value.trim();
 
     if (!title || !content) {
       this.showToast(this.t(TRANSLATION_KEYS.FILL_ALL_FIELDS), "error");
       return;
     }
 
-    const prompt = {
-      id: Date.now(),
-      title: title,
-      content: content,
-      createdAt: new Date().toISOString(),
-      rating: 0,
-    };
+    try {
+      // Check if we're editing an existing prompt
+      if (this.editingPromptId !== null) {
+        this.updatePrompt(this.editingPromptId, title, content, model);
+        return;
+      }
 
-    this.prompts.unshift(prompt);
-    this.savePrompts();
-    this.renderPrompts();
+      // Create new prompt
+      const metadata = model ? this.trackModel(model, content) : null;
+
+      const prompt = {
+        id: Date.now(),
+        title: title,
+        content: content,
+        createdAt: new Date().toISOString(),
+        rating: 0,
+        metadata: metadata,
+      };
+
+      this.prompts.unshift(prompt);
+      this.savePrompts();
+      this.renderPrompts();
+
+      // Clear form
+      titleInput.value = "";
+      contentInput.value = "";
+      modelInput.value = "";
+      titleInput.focus();
+
+      this.showToast(this.t(TRANSLATION_KEYS.PROMPT_SAVED), "success");
+    } catch (error) {
+      this.showToast(error.message, "error");
+    }
+  }
+
+  editPrompt(id) {
+    const prompt = this.prompts.find((p) => p.id === id);
+    if (!prompt) return;
+
+    // Set editing mode
+    this.editingPromptId = id;
+
+    // Populate form
+    const titleInput = document.getElementById("promptTitle");
+    const contentInput = document.getElementById("promptContent");
+    const modelInput = document.getElementById("promptModel");
+    const submitButton = document.querySelector(".btn-primary");
+    const formHeading = document.getElementById("addPromptHeading");
+
+    titleInput.value = prompt.title;
+    contentInput.value = prompt.content;
+    modelInput.value = prompt.metadata ? prompt.metadata.model : "";
+
+    // Update UI to show edit mode
+    submitButton.textContent = this.t(TRANSLATION_KEYS.UPDATE_PROMPT);
+    formHeading.textContent = this.t(TRANSLATION_KEYS.EDIT_PROMPT);
+
+    // Add cancel button if it doesn't exist
+    if (!document.getElementById("cancelEditButton")) {
+      const cancelButton = document.createElement("button");
+      cancelButton.id = "cancelEditButton";
+      cancelButton.type = "button";
+      cancelButton.className = "btn-cancel";
+      cancelButton.textContent = this.t(TRANSLATION_KEYS.CANCEL);
+      cancelButton.onclick = () => this.cancelEdit();
+      submitButton.parentElement.appendChild(cancelButton);
+    }
+
+    // Scroll to form
+    titleInput.scrollIntoView({ behavior: "smooth", block: "center" });
+    titleInput.focus();
+  }
+
+  updatePrompt(id, title, content, model) {
+    const index = this.prompts.findIndex((p) => p.id === id);
+    if (index === -1) return;
+
+    const prompt = this.prompts[index];
+
+    try {
+      // Update basic fields
+      prompt.title = title;
+      prompt.content = content;
+
+      // Update or create metadata
+      if (model) {
+        const isCode = content.includes("```") || content.includes("function");
+        const tokenEstimate = this.estimateTokens(content, isCode);
+
+        if (prompt.metadata) {
+          // Update existing metadata
+          prompt.metadata = this.updateTimestamps({
+            ...prompt.metadata,
+            model: model,
+            tokenEstimate: tokenEstimate,
+          });
+        } else {
+          // Create new metadata
+          prompt.metadata = this.trackModel(model, content);
+        }
+      } else if (prompt.metadata) {
+        // If model is removed, update timestamps only
+        const isCode = content.includes("```") || content.includes("function");
+        const tokenEstimate = this.estimateTokens(content, isCode);
+        prompt.metadata = this.updateTimestamps({
+          ...prompt.metadata,
+          tokenEstimate: tokenEstimate,
+        });
+      }
+
+      this.savePrompts();
+      this.renderPrompts();
+      this.cancelEdit();
+
+      this.showToast(this.t(TRANSLATION_KEYS.PROMPT_UPDATED), "success");
+    } catch (error) {
+      this.showToast(error.message, "error");
+    }
+  }
+
+  cancelEdit() {
+    this.editingPromptId = null;
 
     // Clear form
+    const titleInput = document.getElementById("promptTitle");
+    const contentInput = document.getElementById("promptContent");
+    const modelInput = document.getElementById("promptModel");
+    const submitButton = document.querySelector(".btn-primary");
+    const formHeading = document.getElementById("addPromptHeading");
+
     titleInput.value = "";
     contentInput.value = "";
-    titleInput.focus();
+    modelInput.value = "";
 
-    this.showToast(this.t(TRANSLATION_KEYS.PROMPT_SAVED), "success");
+    // Reset UI
+    submitButton.textContent = this.t(TRANSLATION_KEYS.SAVE_BUTTON);
+    formHeading.textContent = this.t(TRANSLATION_KEYS.ADD_NEW_PROMPT);
+
+    // Remove cancel button
+    const cancelButton = document.getElementById("cancelEditButton");
+    if (cancelButton) {
+      cancelButton.remove();
+    }
+
+    titleInput.focus();
   }
 
   deletePrompt(id) {
@@ -683,19 +867,65 @@ Focus on *decisions* and *next steps*.`,
                     </div>
                 </div>
                 
+                ${
+                  prompt.metadata
+                    ? `
+                <div class="metadata-container">
+                    <div class="metadata-row">
+                        <span class="metadata-label">🤖 ${this.escapeHtml(
+                          prompt.metadata.model
+                        )}</span>
+                        <span class="metadata-timestamps">
+                            <span class="metadata-item" title="${prompt.metadata.createdAt}">
+                                ${this.t(TRANSLATION_KEYS.CREATED)}: ${this.formatTimestamp(prompt.metadata.createdAt)}
+                            </span>
+                            ${
+                              prompt.metadata.updatedAt !==
+                              prompt.metadata.createdAt
+                                ? `
+                            <span class="metadata-separator">•</span>
+                            <span class="metadata-item" title="${prompt.metadata.updatedAt}">
+                                ${this.t(TRANSLATION_KEYS.UPDATED)}: ${this.formatTimestamp(prompt.metadata.updatedAt)}
+                            </span>
+                            `
+                                : ""
+                            }
+                        </span>
+                    </div>
+                    <div class="metadata-row">
+                        <span class="token-estimate">
+                            📊 ${this.t(TRANSLATION_KEYS.TOKEN_ESTIMATE)}: 
+                            <span class="token-range">${prompt.metadata.tokenEstimate.min}-${prompt.metadata.tokenEstimate.max}</span>
+                            <span class="confidence-badge" style="background-color: ${this.getConfidenceColor(prompt.metadata.tokenEstimate.confidence)}20; color: ${this.getConfidenceColor(prompt.metadata.tokenEstimate.confidence)};">
+                                ${prompt.metadata.tokenEstimate.confidence}
+                            </span>
+                        </span>
+                    </div>
+                </div>
+                `
+                    : ""
+                }
+                
                 <div class="prompt-actions">
                     <button class="btn-note" onclick="promptLibrary.toggleNoteEditor(${prompt.id})" aria-label="Add or edit note">
-                        ${prompt.note ? this.t(TRANSLATION_KEYS.EDIT_NOTE) : this.t(TRANSLATION_KEYS.ADD_NOTE)}
+                        <span class="btn-icon">${prompt.note ? "📝" : "📝"}</span>
+                        <span class="btn-text">${prompt.note ? this.t(TRANSLATION_KEYS.EDIT_NOTE).replace("📝 ", "") : this.t(TRANSLATION_KEYS.ADD_NOTE).replace("📝 ", "")}</span>
+                    </button>
+                    <button class="btn-edit" onclick="promptLibrary.editPrompt(${prompt.id})" aria-label="Edit this prompt">
+                        <span class="btn-icon">✏️</span>
+                        <span class="btn-text">${this.t(TRANSLATION_KEYS.EDIT_BUTTON).replace("✏️ ", "")}</span>
                     </button>
                     <button class="btn-copy" onclick="promptLibrary.copyPrompt(\`${this.escapeForAttribute(
                       prompt.content
                     )}\`)" aria-label="Copy prompt to clipboard">
-                        ${this.t(TRANSLATION_KEYS.COPY_BUTTON)}
+                        <span class="btn-icon">📋</span>
+                        <span class="btn-text">${this.t(TRANSLATION_KEYS.COPY_BUTTON).replace("📋 ", "")}</span>
                     </button>
                     <button class="btn-delete" onclick="promptLibrary.deletePrompt(${
                       prompt.id
                     })" aria-label="Delete this prompt">
-                        ${this.t(TRANSLATION_KEYS.DELETE_BUTTON)}
+                        <span class="btn-icon">🗑️</span>
+                        <span class="btn-text">${this.t(TRANSLATION_KEYS.DELETE_BUTTON).replace("🗑️ ", "")}</span>
                     </button>
                 </div>
                 
@@ -851,6 +1081,133 @@ Focus on *decisions* and *next steps*.`,
       .replace(/\$/g, "\\$")
       .replace(/\n/g, "\\n")
       .replace(/\r/g, "\\r");
+  }
+
+  // Metadata Tracking System
+  estimateTokens(text, isCode = false) {
+    if (!text || typeof text !== "string") {
+      throw new Error("Text must be a non-empty string");
+    }
+
+    const wordCount = text.trim().split(/\s+/).length;
+    const charCount = text.length;
+
+    let minTokens = Math.ceil(0.75 * wordCount);
+    let maxTokens = Math.ceil(0.25 * charCount);
+
+    if (isCode) {
+      minTokens = Math.ceil(minTokens * 1.3);
+      maxTokens = Math.ceil(maxTokens * 1.3);
+    }
+
+    const avgTokens = (minTokens + maxTokens) / 2;
+    let confidence;
+
+    if (avgTokens < 1000) {
+      confidence = "high";
+    } else if (avgTokens <= 5000) {
+      confidence = "medium";
+    } else {
+      confidence = "low";
+    }
+
+    return {
+      min: minTokens,
+      max: maxTokens,
+      confidence: confidence,
+    };
+  }
+
+  trackModel(modelName, content) {
+    if (!modelName || typeof modelName !== "string") {
+      throw new Error("Model name must be a non-empty string");
+    }
+
+    if (modelName.length > 100) {
+      throw new Error("Model name must not exceed 100 characters");
+    }
+
+    if (!content || typeof content !== "string") {
+      throw new Error("Content must be a non-empty string");
+    }
+
+    const now = new Date().toISOString();
+    const isCode = content.includes("```") || content.includes("function");
+
+    try {
+      const tokenEstimate = this.estimateTokens(content, isCode);
+
+      return {
+        model: modelName.trim(),
+        createdAt: now,
+        updatedAt: now,
+        tokenEstimate: tokenEstimate,
+      };
+    } catch (error) {
+      throw new Error(`Failed to track model: ${error.message}`);
+    }
+  }
+
+  updateTimestamps(metadata) {
+    if (!metadata || typeof metadata !== "object") {
+      throw new Error("Metadata must be an object");
+    }
+
+    if (!metadata.createdAt) {
+      throw new Error("Metadata must have a createdAt field");
+    }
+
+    const now = new Date().toISOString();
+    const createdDate = new Date(metadata.createdAt);
+    const updatedDate = new Date(now);
+
+    if (isNaN(createdDate.getTime())) {
+      throw new Error("Invalid createdAt date format");
+    }
+
+    if (updatedDate < createdDate) {
+      throw new Error("updatedAt cannot be earlier than createdAt");
+    }
+
+    return {
+      ...metadata,
+      updatedAt: now,
+    };
+  }
+
+  formatTimestamp(isoString) {
+    try {
+      const date = new Date(isoString);
+      const now = new Date();
+      const diffMs = now - date;
+      const diffMins = Math.floor(diffMs / 60000);
+
+      if (diffMins < 1) return "just now";
+      if (diffMins < 60) return `${diffMins}m ago`;
+
+      const diffHours = Math.floor(diffMins / 60);
+      if (diffHours < 24) return `${diffHours}h ago`;
+
+      const diffDays = Math.floor(diffHours / 24);
+      if (diffDays < 7) return `${diffDays}d ago`;
+
+      return date.toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+        year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
+      });
+    } catch (error) {
+      return "Invalid date";
+    }
+  }
+
+  getConfidenceColor(confidence) {
+    const colors = {
+      high: "#10b981",
+      medium: "#f59e0b",
+      low: "#ef4444",
+    };
+    return colors[confidence] || colors.medium;
   }
 
   showToast(message, _type = "success") {

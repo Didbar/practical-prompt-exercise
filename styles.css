@@ -251,6 +251,32 @@ header h1 {
   transform: translateY(0);
 }
 
+.btn-cancel {
+  background-color: rgba(107, 114, 128, 0.1);
+  color: #6b7280;
+  padding: 0.75rem 2rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background-color 0.2s,
+    transform 0.1s;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.btn-cancel:hover {
+  background-color: #6b7280;
+  color: white;
+  transform: translateY(-1px);
+}
+
+.btn-cancel:active {
+  transform: translateY(0);
+}
+
 .prompts-section {
   min-height: 300px;
   background: transparent;
@@ -451,6 +477,70 @@ header h1 {
   padding: 0.375rem 0.625rem;
   border-radius: 10px;
   border: none;
+}
+
+/* Metadata Styles */
+.metadata-container {
+  padding: 0 1.5rem 0.75rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.metadata-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.metadata-label {
+  font-weight: 500;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.metadata-timestamps {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.metadata-item {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+.metadata-separator {
+  opacity: 0.5;
+}
+
+.token-estimate {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.token-range {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.confidence-badge {
+  padding: 0.125rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 .star {
@@ -710,7 +800,7 @@ header h1 {
 .prompt-actions {
   display: flex;
   gap: 0.5rem;
-  padding: 0 1.5rem 1rem 1.5rem;
+  padding: 1rem 1.5rem 1rem 1.5rem;
   flex-shrink: 0;
 }
 
@@ -729,10 +819,41 @@ header h1 {
   min-width: 0;
   background-color: rgba(251, 191, 36, 0.1);
   color: #d97706;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
 }
 
 .btn-note:hover {
   background-color: #fbbf24;
+  color: white;
+  transform: translateY(-1px);
+}
+
+.btn-edit {
+  flex: 0.8;
+  padding: 0.625rem 1rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  background-color: rgba(34, 197, 94, 0.1);
+  color: #16a34a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+}
+
+.btn-edit:hover {
+  background-color: #22c55e;
   color: white;
   transform: translateY(-1px);
 }
@@ -751,6 +872,10 @@ header h1 {
   overflow: hidden;
   text-overflow: ellipsis;
   min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
 }
 
 .btn-copy {
@@ -774,6 +899,49 @@ header h1 {
   background-color: var(--danger-color);
   color: white;
   transform: translateY(-1px);
+}
+
+/* Button icon and text structure */
+.btn-icon {
+  flex-shrink: 0;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.btn-text {
+  flex-shrink: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Hide button text on smaller screens, show only icons */
+@media (max-width: 768px) {
+  .prompt-actions .btn-text {
+    display: none;
+  }
+
+  .btn-note,
+  .btn-edit,
+  .btn-copy,
+  .btn-delete {
+    padding: 0.625rem;
+    min-width: 2.5rem;
+  }
+}
+
+/* Also hide text when container is narrow (grid layout) */
+@media (min-width: 769px) and (max-width: 1200px) {
+  .prompts-grid .btn-text {
+    display: none;
+  }
+
+  .prompts-grid .btn-note,
+  .prompts-grid .btn-edit,
+  .prompts-grid .btn-copy,
+  .prompts-grid .btn-delete {
+    padding: 0.625rem;
+    min-width: 2.5rem;
+  }
 }
 
 .empty-state {
