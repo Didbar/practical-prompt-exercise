@@ -6,6 +6,7 @@ export class PromptLibrary {
     this.prompts = [];
     this.currentLang = "en";
     this.searchQuery = "";
+    this.autoSaveTimers = {};
     this.init();
   }
 
@@ -137,9 +138,101 @@ export class PromptLibrary {
         this.prompts = JSON.parse(stored);
       } catch (error) {
         console.error("Error loading prompts:", error);
-        this.prompts = [];
+        this.prompts = this.getDefaultPrompts();
       }
+    } else {
+      // Load default prompts if nothing is stored
+      this.prompts = this.getDefaultPrompts();
+      this.savePrompts();
     }
+  }
+
+  getDefaultPrompts() {
+    return [
+      {
+        id: Date.now() + 1,
+        title: "Code Review Assistant",
+        content: `Review the following code for:
+- Bugs and errors
+- Performance issues  
+- Security vulnerabilities
+- Code style and best practices
+
+Provide specific, actionable feedback with examples.`,
+        createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+        rating: 5,
+        note: "Works best with small to medium code snippets.",
+      },
+      {
+        id: Date.now() + 2,
+        title: "Professional Email Writer",
+        content: `Write a professional email with:
+- Purpose: [your purpose]
+- Tone: [formal/friendly]
+- Key points: [main points]
+- Call to action: [desired action]
+
+Keep it concise, clear, and professional.`,
+        createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+        rating: 4,
+      },
+      {
+        id: Date.now() + 3,
+        title: "Bug Report Generator",
+        content: `Create a bug report with:
+
+Summary:
+[Brief description]
+
+Steps to Reproduce:
+1. [First step]
+2. [Second step]
+
+Expected: [What should happen]
+Actual: [What happens]
+
+Environment: [Browser/OS/Device]
+Priority: [Critical/High/Medium/Low]`,
+        createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        rating: 5,
+        note: "Include console errors and screenshots.",
+      },
+      {
+        id: Date.now() + 4,
+        title: "Social Media Post Generator",
+        content: `Create an engaging post for *[platform]* about:
+- Topic: [your topic]
+- Audience: [target audience]
+- Tone: [professional/casual/humorous]
+- Include: [hashtags/emojis/CTA]
+
+Start with a hook and encourage engagement.`,
+        createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+        rating: 4,
+        note: "Adapt tone by platform.",
+      },
+      {
+        id: Date.now() + 5,
+        title: "Meeting Notes Summarizer",
+        content: `Summarize meeting notes with:
+
+Overview:
+- Date & Attendees: [list]
+- Main topics: [summary]
+
+Key Decisions:
+- [Decision 1]
+- [Decision 2]
+
+Action Items:
+- [Task] - Assigned: [Person] - Due: [Date]
+
+Focus on *decisions* and *next steps*.`,
+        createdAt: new Date().toISOString(),
+        rating: 5,
+        note: "Great for standups and team meetings.",
+      },
+    ];
   }
 
   savePrompts() {
@@ -208,19 +301,24 @@ export class PromptLibrary {
     if (prompt) {
       prompt.rating = rating;
       this.savePrompts();
-      
+
       // Update only the specific rating UI without re-rendering everything
-      const card = document.querySelector(`.prompt-card[data-id="${promptId}"]`);
+      const card = document.querySelector(
+        `.prompt-card[data-id="${promptId}"]`
+      );
       if (card) {
-        const ratingContainer = card.querySelector('.rating-container');
+        const ratingContainer = card.querySelector(".rating-container");
         if (ratingContainer) {
           ratingContainer.innerHTML = `
             <div class="rating-stars">
               ${Array.from({ length: 5 }, (_, i) => {
                 const starNum = i + 1;
                 const filled = starNum <= rating;
-                const starClass = filled ? 'star-filled' : 'star-empty';
-                const ariaLabel = this.t(TRANSLATION_KEYS.RATE_STARS).replace('{0}', starNum.toString());
+                const starClass = filled ? "star-filled" : "star-empty";
+                const ariaLabel = this.t(TRANSLATION_KEYS.RATE_STARS).replace(
+                  "{0}",
+                  starNum.toString()
+                );
                 return `
                   <button
                     class="star ${starClass}"
@@ -228,15 +326,210 @@ export class PromptLibrary {
                     onclick="promptLibrary.setRating(${promptId}, ${starNum})"
                     aria-label="${ariaLabel}"
                     type="button"
-                  >${filled ? '★' : '☆'}</button>
+                  >${filled ? "★" : "☆"}</button>
                 `;
-              }).join('')}
+              }).join("")}
             </div>
           `;
         }
       }
-      
+
       this.showToast(this.t(TRANSLATION_KEYS.RATING_UPDATED), "success");
+    }
+  }
+
+  toggleNoteEditor(promptId) {
+    const card = document.querySelector(`.prompt-card[data-id="${promptId}"]`);
+    if (!card) return;
+
+    const noteSection = card.querySelector(".note-section");
+    const isVisible = noteSection.classList.contains("visible");
+
+    if (isVisible) {
+      noteSection.classList.remove("visible");
+      // Clear auto-save timer when closing
+      if (this.autoSaveTimers[promptId]) {
+        clearTimeout(this.autoSaveTimers[promptId]);
+        delete this.autoSaveTimers[promptId];
+      }
+    } else {
+      noteSection.classList.add("visible");
+      const textarea = noteSection.querySelector(".note-textarea");
+      if (textarea) {
+        textarea.focus();
+        // Initialize character count without auto-save
+        this.updateCharacterCount(promptId, false);
+      }
+    }
+  }
+
+  saveNote(promptId) {
+    const card = document.querySelector(`.prompt-card[data-id="${promptId}"]`);
+    if (!card) return;
+
+    const textarea = card.querySelector(".note-textarea");
+    const noteText = textarea.value.trim();
+
+    const prompt = this.prompts.find((p) => p.id === promptId);
+    if (prompt) {
+      if (noteText) {
+        prompt.note = noteText;
+        prompt.noteUpdatedAt = Date.now();
+      } else {
+        delete prompt.note;
+        delete prompt.noteUpdatedAt;
+      }
+
+      this.savePrompts();
+
+      // Check if note display container exists
+      let noteDisplayContainer = card.querySelector(".note-display-container");
+      const noteIndicator = card.querySelector(".note-indicator");
+
+      if (noteText) {
+        // If note display doesn't exist, create it
+        if (!noteDisplayContainer) {
+          const promptContent = card.querySelector(".prompt-content");
+          noteDisplayContainer = document.createElement("div");
+          noteDisplayContainer.className = "note-display-container";
+          noteDisplayContainer.innerHTML = `<div class="note-display">${this.escapeHtml(noteText)}</div>`;
+          promptContent.after(noteDisplayContainer);
+        } else {
+          // Update existing note display
+          const noteDisplay =
+            noteDisplayContainer.querySelector(".note-display");
+          if (noteDisplay) {
+            noteDisplay.textContent = noteText;
+          }
+        }
+
+        // Show note indicator
+        if (noteIndicator) noteIndicator.style.display = "inline";
+
+        // Update the "Add Note" button to "Edit Note"
+        const noteButton = card.querySelector(".btn-note");
+        if (noteButton) {
+          noteButton.textContent = this.t(TRANSLATION_KEYS.EDIT_NOTE);
+        }
+      } else {
+        // Remove note display if it exists
+        if (noteDisplayContainer) {
+          noteDisplayContainer.remove();
+        }
+        if (noteIndicator) noteIndicator.style.display = "none";
+
+        // Update button back to "Add Note"
+        const noteButton = card.querySelector(".btn-note");
+        if (noteButton) {
+          noteButton.textContent = this.t(TRANSLATION_KEYS.ADD_NOTE);
+        }
+      }
+
+      // Update delete button visibility in the note editor
+      const noteSection = card.querySelector(".note-section");
+      if (noteSection) {
+        const noteButtons = noteSection.querySelector(".note-buttons");
+        if (noteButtons && noteText) {
+          // Add delete button if it doesn't exist
+          if (!noteButtons.querySelector(".btn-note-delete")) {
+            const deleteBtn = document.createElement("button");
+            deleteBtn.className = "btn-note-delete";
+            deleteBtn.onclick = () => this.deleteNote(promptId);
+            deleteBtn.type = "button";
+            deleteBtn.textContent = this.t(TRANSLATION_KEYS.DELETE_NOTE);
+            noteButtons.insertBefore(deleteBtn, noteButtons.firstChild);
+          }
+        }
+      }
+
+      // Close the editor
+      this.toggleNoteEditor(promptId);
+      this.showToast(this.t(TRANSLATION_KEYS.NOTE_SAVED), "success");
+    }
+  }
+
+  deleteNote(promptId) {
+    if (!confirm(this.t(TRANSLATION_KEYS.DELETE_NOTE_CONFIRM))) {
+      return;
+    }
+
+    const prompt = this.prompts.find((p) => p.id === promptId);
+    if (prompt) {
+      delete prompt.note;
+      delete prompt.noteUpdatedAt;
+      this.savePrompts();
+
+      const card = document.querySelector(
+        `.prompt-card[data-id="${promptId}"]`
+      );
+      if (card) {
+        // Remove the note display container
+        const noteDisplayContainer = card.querySelector(
+          ".note-display-container"
+        );
+        if (noteDisplayContainer) {
+          noteDisplayContainer.remove();
+        }
+
+        const noteIndicator = card.querySelector(".note-indicator");
+        const textarea = card.querySelector(".note-textarea");
+
+        if (noteIndicator) noteIndicator.style.display = "none";
+        if (textarea) textarea.value = "";
+
+        // Update button back to "Add Note"
+        const noteButton = card.querySelector(".btn-note");
+        if (noteButton) {
+          noteButton.textContent = this.t(TRANSLATION_KEYS.ADD_NOTE);
+        }
+
+        // Remove delete button from note editor
+        const deleteBtn = card.querySelector(".btn-note-delete");
+        if (deleteBtn) {
+          deleteBtn.remove();
+        }
+
+        this.toggleNoteEditor(promptId);
+      }
+
+      this.showToast(this.t(TRANSLATION_KEYS.NOTE_DELETED), "success");
+    }
+  }
+
+  updateCharacterCount(promptId, enableAutoSave = true) {
+    const card = document.querySelector(`.prompt-card[data-id="${promptId}"]`);
+    if (!card) return;
+
+    const textarea = card.querySelector(".note-textarea");
+    const charCount = card.querySelector(".char-count");
+
+    if (textarea && charCount) {
+      const length = textarea.value.length;
+      charCount.textContent = `${length}/500 ${this.t(TRANSLATION_KEYS.CHARACTERS)}`;
+
+      if (length > 500) {
+        charCount.style.color = "var(--danger-color)";
+        textarea.value = textarea.value.substring(0, 500);
+      } else {
+        charCount.style.color = "var(--text-secondary)";
+      }
+    }
+
+    // Auto-save after 1 second of inactivity (only if enableAutoSave is true)
+    if (enableAutoSave) {
+      if (this.autoSaveTimers[promptId]) {
+        clearTimeout(this.autoSaveTimers[promptId]);
+      }
+
+      this.autoSaveTimers[promptId] = setTimeout(() => {
+        const prompt = this.prompts.find((p) => p.id === promptId);
+        const currentNote = textarea ? textarea.value.trim() : "";
+
+        // Only auto-save if the note has actually changed
+        if (prompt && currentNote !== (prompt.note || "")) {
+          this.saveNote(promptId);
+        }
+      }, 1000);
     }
   }
 
@@ -375,7 +668,10 @@ export class PromptLibrary {
             <article class="prompt-card" data-id="${prompt.id}" role="listitem">
                 <div class="prompt-card-header">
                     <div>
-                        <h3>${this.escapeHtml(prompt.title)}</h3>
+                        <h3>
+                            ${this.escapeHtml(prompt.title)}
+                            ${prompt.note ? '<span class="note-indicator" style="display: inline;">📝</span>' : '<span class="note-indicator" style="display: none;">📝</span>'}
+                        </h3>
                         <div class="prompt-date">${this.formatDate(
                           prompt.createdAt
                         )}</div>
@@ -386,10 +682,11 @@ export class PromptLibrary {
                         ${this.renderStars(prompt.id, prompt.rating || 0)}
                     </div>
                 </div>
-                <div class="prompt-content">${this.escapeHtml(
-                  prompt.content
-                )}</div>
+                
                 <div class="prompt-actions">
+                    <button class="btn-note" onclick="promptLibrary.toggleNoteEditor(${prompt.id})" aria-label="Add or edit note">
+                        ${prompt.note ? this.t(TRANSLATION_KEYS.EDIT_NOTE) : this.t(TRANSLATION_KEYS.ADD_NOTE)}
+                    </button>
                     <button class="btn-copy" onclick="promptLibrary.copyPrompt(\`${this.escapeForAttribute(
                       prompt.content
                     )}\`)" aria-label="Copy prompt to clipboard">
@@ -401,6 +698,49 @@ export class PromptLibrary {
                         ${this.t(TRANSLATION_KEYS.DELETE_BUTTON)}
                     </button>
                 </div>
+                
+                ${
+                  prompt.note
+                    ? `
+                <div class="note-display-container">
+                    <div class="note-display">${this.escapeHtml(prompt.note)}</div>
+                </div>
+                `
+                    : ""
+                }
+                
+                <div class="note-section">
+                    <textarea 
+                        class="note-textarea" 
+                        placeholder="${this.t(TRANSLATION_KEYS.NOTE_PLACEHOLDER)}"
+                        maxlength="500"
+                        oninput="promptLibrary.updateCharacterCount(${prompt.id})"
+                    >${prompt.note ? this.escapeHtml(prompt.note) : ""}</textarea>
+                    <div class="note-actions">
+                        <span class="char-count">0/500 ${this.t(TRANSLATION_KEYS.CHARACTERS)}</span>
+                        <div class="note-buttons">
+                            ${
+                              prompt.note
+                                ? `
+                            <button class="btn-note-delete" onclick="promptLibrary.deleteNote(${prompt.id})" type="button">
+                                ${this.t(TRANSLATION_KEYS.DELETE_NOTE)}
+                            </button>
+                            `
+                                : ""
+                            }
+                            <button class="btn-note-cancel" onclick="promptLibrary.toggleNoteEditor(${prompt.id})" type="button">
+                                ${this.t(TRANSLATION_KEYS.CANCEL)}
+                            </button>
+                            <button class="btn-note-save" onclick="promptLibrary.saveNote(${prompt.id})" type="button">
+                                ${this.t(TRANSLATION_KEYS.SAVE_NOTE)}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="prompt-content">${this.formatPromptContent(
+                  prompt.content
+                )}</div>
             </article>
         `
       )
@@ -413,6 +753,97 @@ export class PromptLibrary {
     return div.innerHTML;
   }
 
+  formatPromptContent(text) {
+    if (!text) return "";
+
+    // Split into lines for processing (don't escape yet)
+    let lines = text.split("\n");
+    let result = [];
+    let inCodeBlock = false;
+
+    for (let i = 0; i < lines.length; i++) {
+      let line = lines[i];
+
+      // Code blocks (```)
+      if (line.trim().startsWith("```")) {
+        inCodeBlock = !inCodeBlock;
+        if (inCodeBlock) {
+          result.push('<div class="code-block">');
+        } else {
+          result.push("</div>");
+        }
+        continue;
+      }
+
+      if (inCodeBlock) {
+        result.push(`<div class="code-line">${this.escapeHtml(line)}</div>`);
+        continue;
+      }
+
+      // Headings (lines ending with :)
+      if (
+        line.trim().endsWith(":") &&
+        line.trim().length > 1 &&
+        line.trim().length < 100
+      ) {
+        const formatted = this.formatInlineStyles(line);
+        result.push(`<div class="prompt-heading">${formatted}</div>`);
+        continue;
+      }
+
+      // Bullet lists (-, *, •)
+      const bulletMatch = line.trim().match(/^[-*•]\s+(.+)/);
+      if (bulletMatch) {
+        const content = bulletMatch[1]; // Use the captured group
+        const formatted = this.formatInlineStyles(content);
+        result.push(
+          `<div class="prompt-list-item"><span class="bullet">•</span> ${formatted}</div>`
+        );
+        continue;
+      }
+
+      // Numbered lists (1., 2., etc.)
+      const numberMatch = line.trim().match(/^(\d+)\.\s+(.+)/);
+      if (numberMatch) {
+        const formatted = this.formatInlineStyles(numberMatch[2]);
+        result.push(
+          `<div class="prompt-list-item"><span class="number">${numberMatch[1]}.</span> ${formatted}</div>`
+        );
+        continue;
+      }
+
+      // Empty lines for spacing
+      if (line.trim() === "") {
+        result.push('<div class="line-break"></div>');
+      } else {
+        const formatted = this.formatInlineStyles(line);
+        result.push(`<div class="prompt-line">${formatted}</div>`);
+      }
+    }
+
+    return result.join("");
+  }
+
+  formatInlineStyles(text) {
+    // Escape HTML first
+    let formatted = this.escapeHtml(text);
+
+    // Bold text (**text**)
+    formatted = formatted.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+
+    // Inline code (`code`) - do this before italic to avoid conflicts
+    formatted = formatted.replace(
+      /`([^`]+)`/g,
+      '<code class="inline-code">$1</code>'
+    );
+
+    // Italic text (*text* or _text_) - but not if it's part of **
+    formatted = formatted.replace(/(?<!\*)\*([^*]+?)\*(?!\*)/g, "<em>$1</em>");
+    formatted = formatted.replace(/(?<!_)_([^_]+?)_(?!_)/g, "<em>$1</em>");
+
+    return formatted;
+  }
+
   escapeForAttribute(text) {
     return text
       .replace(/\\/g, "\\\\")
@@ -423,19 +854,24 @@ export class PromptLibrary {
   }
 
   showToast(message, _type = "success") {
-    // Remove any existing toast
+    // Remove any existing toast with fade out
     const existingToast = document.querySelector(".toast");
     if (existingToast) {
-      existingToast.remove();
+      existingToast.style.opacity = "0";
+      existingToast.style.transform = "translateY(10px)";
+      setTimeout(() => existingToast.remove(), 150);
     }
 
     const toast = document.createElement("div");
     toast.className = "toast";
     toast.textContent = message;
+    toast.style.transition = "opacity 0.2s ease, transform 0.2s ease";
     document.body.appendChild(toast);
 
     setTimeout(() => {
-      toast.remove();
-    }, 3000);
+      toast.style.opacity = "0";
+      toast.style.transform = "translateY(10px)";
+      setTimeout(() => toast.remove(), 200);
+    }, 2000);
   }
 }
