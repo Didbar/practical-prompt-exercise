@@ -346,7 +346,9 @@ Focus on *decisions* and *next steps*.`;
 
   editPrompt(id) {
     const prompt = this.prompts.find((p) => p.id === id);
-    if (!prompt) return;
+    if (!prompt) {
+      return;
+    }
 
     // Set editing mode
     this.editingPromptId = id;
@@ -384,7 +386,9 @@ Focus on *decisions* and *next steps*.`;
 
   updatePrompt(id, title, content, model) {
     const index = this.prompts.findIndex((p) => p.id === id);
-    if (index === -1) return;
+    if (index === -1) {
+      return;
+    }
 
     const prompt = this.prompts[index];
 
@@ -524,7 +528,9 @@ Focus on *decisions* and *next steps*.`;
 
   toggleNoteEditor(promptId) {
     const card = document.querySelector(`.prompt-card[data-id="${promptId}"]`);
-    if (!card) return;
+    if (!card) {
+      return;
+    }
 
     const noteSection = card.querySelector(".note-section");
     const isVisible = noteSection.classList.contains("visible");
@@ -549,7 +555,9 @@ Focus on *decisions* and *next steps*.`;
 
   saveNote(promptId) {
     const card = document.querySelector(`.prompt-card[data-id="${promptId}"]`);
-    if (!card) return;
+    if (!card) {
+      return;
+    }
 
     const textarea = card.querySelector(".note-textarea");
     const noteText = textarea.value.trim();
@@ -588,7 +596,9 @@ Focus on *decisions* and *next steps*.`;
         }
 
         // Show note indicator
-        if (noteIndicator) noteIndicator.style.display = "inline";
+        if (noteIndicator) {
+          noteIndicator.style.display = "inline";
+        }
 
         // Update the "Add Note" button to "Edit Note"
         const noteButton = card.querySelector(".btn-note");
@@ -600,7 +610,9 @@ Focus on *decisions* and *next steps*.`;
         if (noteDisplayContainer) {
           noteDisplayContainer.remove();
         }
-        if (noteIndicator) noteIndicator.style.display = "none";
+        if (noteIndicator) {
+          noteIndicator.style.display = "none";
+        }
 
         // Update button back to "Add Note"
         const noteButton = card.querySelector(".btn-note");
@@ -658,8 +670,12 @@ Focus on *decisions* and *next steps*.`;
         const noteIndicator = card.querySelector(".note-indicator");
         const textarea = card.querySelector(".note-textarea");
 
-        if (noteIndicator) noteIndicator.style.display = "none";
-        if (textarea) textarea.value = "";
+        if (noteIndicator) {
+          noteIndicator.style.display = "none";
+        }
+        if (textarea) {
+          textarea.value = "";
+        }
 
         // Update button back to "Add Note"
         const noteButton = card.querySelector(".btn-note");
@@ -682,7 +698,9 @@ Focus on *decisions* and *next steps*.`;
 
   updateCharacterCount(promptId, enableAutoSave = true) {
     const card = document.querySelector(`.prompt-card[data-id="${promptId}"]`);
-    if (!card) return;
+    if (!card) {
+      return;
+    }
 
     const textarea = card.querySelector(".note-textarea");
     const charCount = card.querySelector(".char-count");
@@ -984,15 +1002,17 @@ Focus on *decisions* and *next steps*.`;
   }
 
   formatPromptContent(text) {
-    if (!text) return "";
+    if (!text) {
+      return "";
+    }
 
     // Split into lines for processing (don't escape yet)
-    let lines = text.split("\n");
-    let result = [];
+    const lines = text.split("\n");
+    const result = [];
     let inCodeBlock = false;
 
     for (let i = 0; i < lines.length; i++) {
-      let line = lines[i];
+      const line = lines[i];
 
       // Code blocks (```)
       if (line.trim().startsWith("```")) {
@@ -1182,21 +1202,29 @@ Focus on *decisions* and *next steps*.`;
       const diffMs = now - date;
       const diffMins = Math.floor(diffMs / 60000);
 
-      if (diffMins < 1) return "just now";
-      if (diffMins < 60) return `${diffMins}m ago`;
+      if (diffMins < 1) {
+        return "just now";
+      }
+      if (diffMins < 60) {
+        return `${diffMins}m ago`;
+      }
 
       const diffHours = Math.floor(diffMins / 60);
-      if (diffHours < 24) return `${diffHours}h ago`;
+      if (diffHours < 24) {
+        return `${diffHours}h ago`;
+      }
 
       const diffDays = Math.floor(diffHours / 24);
-      if (diffDays < 7) return `${diffDays}d ago`;
+      if (diffDays < 7) {
+        return `${diffDays}d ago`;
+      }
 
       return date.toLocaleDateString(undefined, {
         month: "short",
         day: "numeric",
         year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
       });
-    } catch (error) {
+    } catch {
       return "Invalid date";
     }
   }
